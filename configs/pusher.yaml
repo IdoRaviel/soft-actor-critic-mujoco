@@ -1,0 +1,11 @@
+# Per-environment overrides for Pusher-v4.
+# Only fields that differ from sac/config.py defaults are listed here.
+# Pusher is harder (23-dim obs, 7-dim action in [-2, 2], 100-step episodes);
+# it needs a larger step budget and more warmup than Reacher.
+
+env_id: Pusher-v4
+exp_name: sac
+total_steps: 1000000     # Pusher needs noticeably longer to learn
+start_steps: 10000       # more random exploration up front
+eval_interval: 10000
+eval_episodes: 10

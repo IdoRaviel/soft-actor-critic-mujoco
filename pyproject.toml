@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sac-mujoco"
+version = "0.1.0"
+description = "From-scratch Soft Actor-Critic (SAC) in PyTorch, trained on MuJoCo."
+readme = "README.md"
+requires-python = ">=3.11"
+# Runtime dependencies live in requirements.txt so the pinned CUDA torch build
+# (--extra-index-url) is respected. This file only declares the local package
+# so `pip install -e .` makes `import sac` work from anywhere (e.g. scripts/).
+
+[tool.setuptools]
+packages = ["sac"]

@@ -1,0 +1,10 @@
+# Per-environment overrides for Reacher-v4.
+# Only fields that differ from sac/config.py defaults are listed here.
+# Reacher is easy/short-horizon (50-step episodes); it converges quickly.
+
+env_id: Reacher-v4
+exp_name: sac
+total_steps: 150000      # Reacher converges well before this
+start_steps: 5000        # random-action warmup
+eval_interval: 10000
+eval_episodes: 10

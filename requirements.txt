@@ -1,0 +1,15 @@
+# --- PyTorch (GPU build) ---------------------------------------------------
+# CUDA 12.1 wheel (cu121). Chosen to match an NVIDIA driver reporting CUDA 12.3
+# (e.g. RTX 4070, driver 546.92): CUDA 12.1 <= 12.3, so it runs natively with
+# no forward-compat needed. cu121 tops out at torch 2.5.1.
+# For a CPU-only machine instead, drop the --extra-index-url line and the
+# "+cu121" suffix (i.e. just `torch>=2.2`).
+--extra-index-url https://download.pytorch.org/whl/cu121
+torch==2.5.1+cu121
+gymnasium[mujoco]>=0.29
+mujoco>=2.3,<3  # Pusher-v4 / v4 MuJoCo envs require mujoco<3
+numpy>=1.24
+matplotlib>=3.7
+imageio>=2.31
+imageio-ffmpeg>=0.4
+pyyaml>=6.0
