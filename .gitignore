@@ -18,3 +18,7 @@ videos/
 .idea/
 .vscode/
 .DS_Store
+*.err
+*.out
+*sh
+
