@@ -1,7 +1,6 @@
 # Per-environment overrides for Ant-v4.
 # Ant has a 111-dim obs and 8-dim action space — significantly larger than
-# Pusher/Reacher. We use a bigger network and more warmup, but stay within
-# the 1M-step budget.
+# Pusher/Reacher. We use a bigger network and more warmup.
 
 env_id: Ant-v4
 exp_name: sac

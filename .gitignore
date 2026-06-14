@@ -10,7 +10,6 @@ venv/
 *.pth
 runs/
 log/
-videos/
 *.mp4
 .ipynb_checkpoints/
 .idea/
