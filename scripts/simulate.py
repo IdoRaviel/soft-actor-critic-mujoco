@@ -7,19 +7,19 @@ located next to the checkpoint by default.
 
 Examples:
     python scripts/simulate.py --checkpoint log/sac_Reacher-v4_seed0_20260611-154530/best.pt
-    python scripts/simulate.py --checkpoint log/sac_Pusher-v4_seed0_.../final.pt --episodes 5
+    python scripts/simulate.py --checkpoint log/sac_Pusher-v4_seed0_.../best.pt
 """
 
 from __future__ import annotations
 
 import argparse
 import os
+import random
 
 import gymnasium as gym
 
 from sac.agent import SACAgent
 from sac.config import load_config
-from sac.utils import set_seed
 
 
 def main() -> None:
@@ -27,8 +27,6 @@ def main() -> None:
     p.add_argument("--checkpoint", required=True, help="Path to a .pt checkpoint.")
     p.add_argument("--config", default=None,
                    help="Path to config.yaml (default: alongside the checkpoint).")
-    p.add_argument("--episodes", type=int, default=5, help="Episodes to play.")
-    p.add_argument("--seed", type=int, default=20_000, help="Eval seed base.")
     args = p.parse_args()
 
     ckpt_dir = os.path.dirname(os.path.abspath(args.checkpoint))
@@ -39,7 +37,6 @@ def main() -> None:
         )
 
     cfg = load_config(config_path)
-    set_seed(cfg.seed)
 
     # Live viewer. Force CPU: a single rendered env gains nothing from the GPU.
     env = gym.make(cfg.env_id, render_mode="human")
@@ -52,18 +49,19 @@ def main() -> None:
     )
     agent.load(args.checkpoint)
 
-    print(f"Simulating {cfg.env_id} | {args.checkpoint} | {args.episodes} episode(s) "
-          f"(close the window or Ctrl+C to stop)")
+    print(f"Simulating {cfg.env_id} | {args.checkpoint} | running until Ctrl+C")
+    ep = 0
     try:
-        for ep in range(args.episodes):
-            state, _ = env.reset(seed=args.seed + ep)
+        while True:
+            state, _ = env.reset(seed=random.randint(0, 2**31))
             done, total = False, 0.0
             while not done:
                 action = agent.select_action(state, evaluate=True)
                 state, reward, term, trunc, _ = env.step(action)
                 total += reward
                 done = term or trunc
-            print(f"  episode {ep + 1}: return {total:.2f}")
+            ep += 1
+            print(f"  episode {ep}: return {total:.2f}")
     except KeyboardInterrupt:
         print("\ninterrupted")
     finally:
