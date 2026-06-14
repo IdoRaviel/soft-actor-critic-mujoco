@@ -7,11 +7,9 @@ build/
 dist/
 .venv/
 venv/
-*.pt
 *.pth
 runs/
 log/
-report/
 videos/
 *.mp4
 .ipynb_checkpoints/
