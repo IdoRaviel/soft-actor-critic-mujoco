@@ -1,0 +1,24 @@
+env_id: Reacher-v4
+seed: 2
+device: auto
+exp_name: sac
+total_steps: 150000
+start_steps: 5000
+updates_per_step: 1
+batch_size: 256
+replay_size: 1000000
+gamma: 0.99
+tau: 0.005
+lr: 0.0003
+hidden_sizes:
+- 256
+- 256
+log_std_min: -20.0
+log_std_max: 2.0
+autotune_alpha: true
+init_alpha: 0.2
+target_entropy: null
+eval_interval: 10000
+eval_episodes: 10
+out_dir: log
+save_model: true
