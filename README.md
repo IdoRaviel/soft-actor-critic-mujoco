@@ -119,6 +119,9 @@ across **3 independent seeds** (mean return per environment):
 | `Pusher-v4`  | -21.75, -20.27, -20.75 | **-20.92** |
 | `Ant-v4`     | 6314.91, 7113.52, 6757.49 | **6728.64** |
 
+See the [full project report](report/SAC_MuJoCo_Report.pdf) for the learning curves,
+hyperparameters, and a discussion of what worked and what did not.
+
 ---
 
 ## Project Structure

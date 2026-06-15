@@ -1,5 +1,7 @@
 CLAUDE.md
+# Ignore PDFs (e.g. the assignment brief) but keep the project report.
 *.pdf
+!report/*.pdf
 __pycache__/
 *.py[cod]
 *.egg-info/
