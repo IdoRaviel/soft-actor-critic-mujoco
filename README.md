@@ -7,9 +7,15 @@ A clean, from-scratch implementation of **Soft Actor-Critic** (Haarnoja et al., 
 
 ---
 
+<p align="center">
+  <img src="videos/ant.gif" alt="Trained Ant-v4 agent" width="500">
+</p>
+
+---
+
 ## Overview
 
-This project implements SAC end-to-end in PyTorch with no external RL libraries. Every component — the actor, critics, replay buffer, and training loop — is hand-written from the paper.
+This project implements SAC end-to-end in PyTorch with no external RL libraries. Every component — the actor, critics, replay buffer, and training loop — is built directly from the paper's equations, using only PyTorch and Gymnasium.
 
 **Key algorithmic features:**
 - Twin Q-critics with Polyak-averaged target networks (clipped double-Q)
@@ -23,33 +29,13 @@ This project implements SAC end-to-end in PyTorch with no external RL libraries.
 |-------------|-------------|---------|--------------|---------------|
 | `Reacher-v4` | 11 | 2 | [-1, 1] | 50 |
 | `Pusher-v4`  | 23 | 7 | [-2, 2] | 100 |
-
----
-
-## Project Structure
-
-```
-sac/                    # algorithm library — no RL dependencies
-  config.py             #   Config dataclass + YAML loader
-  networks.py           #   GaussianPolicy (actor) + QNetwork (critic)
-  replay_buffer.py      #   FIFO replay buffer (numpy-backed)
-  agent.py              #   SAC update loop: critics → actor → temperature → Polyak
-  utils.py              #   seeding, CSV logging, run directories
-scripts/
-  train.py              #   training loop: eval every 10k steps, checkpoints, CSV logs
-  evaluate.py           #   score a checkpoint + optional mp4 recording
-  simulate.py           #   watch a checkpoint live in the MuJoCo viewer
-  plot.py               #   eval.csv → learning-curve figures
-configs/
-  reacher.yaml          #   per-environment hyperparameter overrides
-  pusher.yaml
-```
+| `Ant-v4`     | 27 | 8 | [-1, 1] | 1000 |
 
 ---
 
 ## Setup
 
-Requires **Python 3.11**.
+Requires **Python 3.9+** (developed on 3.11).
 
 ```bash
 # 1. Create and activate a virtual environment
@@ -72,7 +58,7 @@ pip install -e .
 
 ## Training
 
-All hyperparameters live in `sac/config.py` and are overridden per-environment in `configs/`. The CLI only exposes `--config` and `--seed` — everything else is in the YAML.
+All hyperparameters live in `sac/config.py` and are overridden per-environment in `configs/`.
 
 ```bash
 # Reacher-v4
@@ -80,6 +66,9 @@ python scripts/train.py --config configs/reacher.yaml --seed 0
 
 # Pusher-v4
 python scripts/train.py --config configs/pusher.yaml --seed 0
+
+# Ant-v4
+python scripts/train.py --config configs/ant.yaml --seed 0
 ```
 
 Each run saves to `log/<env_id>/seed<seed>_<timestamp>/` containing:
@@ -92,17 +81,20 @@ Each run saves to `log/<env_id>/seed<seed>_<timestamp>/` containing:
 
 ## Inference
 
-> **Pretrained models** — coming soon. A `pretrained/` folder with one checkpoint per environment will be added after training is complete.
+A trained checkpoint for each environment is provided under `pretrained_models/`, so
+the agents can be run without training first.
 
-**Watch a trained agent live:**
+**Watch a trained agent live** (opens the MuJoCo viewer; runs until `Ctrl+C`):
 ```bash
-python scripts/simulate.py --checkpoint log/Reacher-v4/seed0_<timestamp>/best.pt --episodes 20
+python scripts/simulate.py --checkpoint pretrained_models/Ant-v4/best.pt
 ```
 
-**Run headless evaluation and optionally record a video:**
+**Score one or more checkpoints** (prints per-run mean ± std and their average), and
+optionally record an mp4:
 ```bash
-python scripts/evaluate.py --run log/Reacher-v4/seed0_<timestamp> --episodes 10
-python scripts/evaluate.py --run log/Reacher-v4/seed0_<timestamp> --episodes 10 --video videos/reacher.mp4
+python scripts/evaluate.py --runs pretrained_models/Reacher-v4 --episodes 100
+python scripts/evaluate.py --runs log/Ant-v4/seed0_* log/Ant-v4/seed1_* log/Ant-v4/seed2_* --episodes 100
+python scripts/evaluate.py --runs pretrained_models/Pusher-v4 --episodes 100 --video videos/pusher.mp4
 ```
 
 ---
@@ -110,25 +102,47 @@ python scripts/evaluate.py --run log/Reacher-v4/seed0_<timestamp> --episodes 10 
 ## Evaluation Protocol
 
 - Evaluation runs every **10,000 training steps** using the **deterministic policy** (mean action, no sampling)
-- Each evaluation averages **10 episodes**
+- During training, each evaluation averages **10 episodes**; final reported results are scored over **100 episodes**
 - Final results are reported as **3 independent seeds** per environment
-- Evaluation episodes use a different seed than training in both the training loop and `evaluate.py` — the policy is deterministic, but initial conditions (arm position, target position) are randomized per episode, so seed diversity ensures an unbiased measure of performance
+- Evaluation episodes use a different seed than training in both the training loop and `evaluate.py` — the policy is deterministic, but initial conditions (e.g. body pose, object/target placement) are randomized per episode, so seed diversity ensures an unbiased measure of performance
 
 ---
 
-## Hyperparameters
+## Results
 
-| Parameter | Reacher-v4 | Pusher-v4 |
-|-----------|-----------|-----------|
-| Total steps | 150,000 | 1,000,000 |
-| Warmup steps | 5,000 | 10,000 |
-| Hidden layers | 2 × 256 | 2 × 256 |
-| Learning rate | 3 × 10⁻⁴ | 3 × 10⁻⁴ |
-| Discount γ | 0.99 | 0.99 |
-| Polyak τ | 0.005 | 0.005 |
-| Batch size | 256 | 256 |
-| Replay buffer | 1,000,000 | 1,000,000 |
-| Target entropy | -2 | -7 |
+Final performance, scored over **100 evaluation episodes** with the deterministic policy
+across **3 independent seeds** (mean return per environment):
+
+| Environment | Seed runs | Average |
+|-------------|-----------|---------|
+| `Reacher-v4` | -4.11, -4.10, -4.06 | **-4.09** |
+| `Pusher-v4`  | -21.75, -20.27, -20.75 | **-20.92** |
+| `Ant-v4`     | 6314.91, 7113.52, 6757.49 | **6728.64** |
+
+---
+
+## Project Structure
+
+```
+sac/                    # algorithm library — no RL dependencies
+  config.py             #   Config dataclass + YAML loader
+  networks.py           #   GaussianPolicy (actor) + QNetwork (critic)
+  replay_buffer.py      #   FIFO replay buffer (numpy-backed)
+  agent.py              #   SAC update loop: critics → actor → temperature → Polyak
+  utils.py              #   seeding, CSV logging, run directories
+scripts/
+  train.py              #   training loop: eval every 10k steps, checkpoints, CSV logs
+  evaluate.py           #   score a checkpoint + optional mp4 recording
+  simulate.py           #   watch a checkpoint live in the MuJoCo viewer (or save a GIF)
+  plot.py               #   eval.csv → learning-curve figures
+configs/
+  reacher.yaml          #   per-environment hyperparameter overrides
+  pusher.yaml
+  ant.yaml
+pretrained_models/      # one trained checkpoint (+ its config) per environment
+report/                 # learning-curve figures and final evaluation results
+videos/                 # recorded agent rollouts
+```
 
 ---
 

@@ -17,5 +17,5 @@ log/
 .DS_Store
 *.err
 *.out
-*sh
+*.sh
 
